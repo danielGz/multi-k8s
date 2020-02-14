@@ -1,0 +1,22 @@
+sudo: required
+services:
+    -docker
+
+before_install:
+    - docker build -t dannx/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true dannx/react-test npm test
+
+after_success:
+    - docker build -t dannx/multi-client ./client
+    - docker build -t dannx/multi-nginx ./nginx
+    - docker build -t dannx/multi-server ./server
+    - docker build -t dannx/multi-worker ./worker
+    #Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_ID" --password-stdin
+    - docker push dannx/multi-client
+    - docker push dannx/multi-nginx
+    - docker push dannx/multi-server
+    - docker push dannx/multi-worker
+
